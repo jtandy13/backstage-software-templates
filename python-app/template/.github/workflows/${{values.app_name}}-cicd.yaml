@@ -43,7 +43,7 @@ jobs:
         name: Modify values for Argo CD
         uses: mikefarah/yq@v4.45.1
         with:
-          cmd: yq -i '.image.tag = "${{'${{ needs.ci.outputs.commit_id }}'}}" charts/${{ values.app_name }}/values-${{ values.app_env }}.yaml
+          cmd: yq -i '.image.tag = "${{'${{ needs.ci.outputs.commit_id }}'}}"' charts/${{ values.app_name }}/values-${{ values.app_env }}.yaml
       -
         name: Commit changes
         uses: EndBug/add-and-commit@v10
