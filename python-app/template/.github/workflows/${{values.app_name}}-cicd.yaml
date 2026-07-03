@@ -62,15 +62,21 @@ jobs:
           chmod +x argocd
           sudo mv argocd /usr/local/bin/argocd
       -
-        name: Ensure argocd repo and app
+        name: Configure and Sync Argo CD App
         shell: bash
         run: |
+          # 1. Authenticate FIRST
+          argocd login argocd-server.argocd \
+            --insecure \
+            --grpc-web \
+            --username admin \
+            --password ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
 
-          # Connects the argocd repo
+          # 2. Connect the argocd repo
           repo="https://github.com/jtandy13-test-org/${{ values.app_name }}.git"
           argocd repo list | grep -q $repo || argocd repo add $repo
 
-          # Creates the argocd app
+          # 3. Create the argocd app
           argocd app get ${{ values.app_name }} || argocd app create ${{ values.app_name }} \
             --repo $repo \
             --path charts/${{ values.app_name }} \
@@ -80,14 +86,7 @@ jobs:
             --revision main \
             --sync-policy manual \
             --sync-option CreateNamespace=true
-      -
-        name: Argocd app sync
-        shell: bash
-        run: |
-          argocd login argocd-server.argocd \
-            --insecure \
-            --grpc-web \
-            --username admin \
-            --password ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
+            
+          # 4. Sync and Wait
           argocd app sync ${{ values.app_name }}
           argocd app wait ${{ values.app_name }} --timeout 180
